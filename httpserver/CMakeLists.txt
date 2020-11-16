@@ -25,13 +25,13 @@ add_library(httpserver_lib STATIC
     onion_processing.cpp
     )
 
-loki_add_subdirectory(../common common)
-loki_add_subdirectory(../storage storage)
-loki_add_subdirectory(../utils utils)
-loki_add_subdirectory(../pow pow)
-loki_add_subdirectory(../crypto crypto)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "disable shared libraries") # Tells loki-mq to do a static build
-loki_add_subdirectory(../vendors/loki-mq loki-mq EXCLUDE_FROM_ALL)
+italo_add_subdirectory(../common common)
+italo_add_subdirectory(../storage storage)
+italo_add_subdirectory(../utils utils)
+italo_add_subdirectory(../pow pow)
+italo_add_subdirectory(../crypto crypto)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "disable shared libraries") # Tells italo-mq to do a static build
+italo_add_subdirectory(../vendors/italo-mq italo-mq EXCLUDE_FROM_ALL)
 find_package(OpenSSL REQUIRED)
 
 find_package(Boost
@@ -51,7 +51,7 @@ target_link_libraries(httpserver_lib PUBLIC storage)
 target_link_libraries(httpserver_lib PUBLIC utils)
 target_link_libraries(httpserver_lib PUBLIC pow)
 target_link_libraries(httpserver_lib PUBLIC crypto)
-target_link_libraries(httpserver_lib PUBLIC lokimq::lokimq)
+target_link_libraries(httpserver_lib PUBLIC italomq::italomq)
 
 set_property(TARGET httpserver_lib PROPERTY CXX_STANDARD 17)
 set_property(TARGET httpserver_lib PROPERTY CXX_STANDARD_REQUIRED TRUE)
@@ -65,7 +65,7 @@ endif()
 target_include_directories(httpserver_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${Boost_INCLUDE_DIRS})
 target_link_libraries(httpserver_lib PUBLIC ${Boost_LIBRARIES})
 
-set(BIN_NAME loki-storage)
+set(BIN_NAME italo-storage)
 
 add_executable(httpserver main.cpp)
 target_compile_options(httpserver PRIVATE -Wall -Wextra -Werror)

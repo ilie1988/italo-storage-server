@@ -2,8 +2,8 @@
 #include "utils.hpp"
 
 extern "C" {
-#include "loki/crypto-ops/crypto-ops.h"
-#include "loki/crypto-ops/hash-ops.h"
+#include "italo/crypto-ops/crypto-ops.h"
+#include "italo/crypto-ops/hash-ops.h"
 }
 
 #include <sodium/crypto_generichash.h>
@@ -17,9 +17,9 @@ extern "C" {
 #include <iterator>
 #include <string>
 
-static_assert(crypto_generichash_BYTES == loki::HASH_SIZE, "Wrong hash size!");
+static_assert(crypto_generichash_BYTES == italo::HASH_SIZE, "Wrong hash size!");
 
-namespace loki {
+namespace italo {
 
 using ec_point = std::array<uint8_t, 32>;
 struct s_comm {
@@ -53,7 +53,7 @@ hash hash_data(const std::string& data) {
 }
 
 signature generate_signature(const hash& prefix_hash,
-                             const lokid_key_pair_t& key_pair) {
+                             const italod_key_pair_t& key_pair) {
     ge_p3 tmp3;
     ec_scalar k;
     s_comm buf;
@@ -132,4 +132,4 @@ bool check_signature(const std::string& signature, const hash& hash,
     return check_signature(sig, hash, public_key);
 }
 
-} // namespace loki
+} // namespace italo

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "loki_logger.h"
+#include "italo_logger.h"
 
 #include <iostream>
 
@@ -8,12 +8,12 @@
 #define VERSION_MINOR 0
 #define VERSION_PATCH 7
 
-#define LOKI_STRINGIFY2(val) #val
-#define LOKI_STRINGIFY(val) LOKI_STRINGIFY2(val)
+#define ITALO_STRINGIFY2(val) #val
+#define ITALO_STRINGIFY(val) ITALO_STRINGIFY2(val)
 
-#define VERSION_MAJOR_STR LOKI_STRINGIFY(VERSION_MAJOR)
-#define VERSION_MINOR_STR LOKI_STRINGIFY(VERSION_MINOR)
-#define VERSION_PATCH_STR LOKI_STRINGIFY(VERSION_PATCH)
+#define VERSION_MAJOR_STR ITALO_STRINGIFY(VERSION_MAJOR)
+#define VERSION_MINOR_STR ITALO_STRINGIFY(VERSION_MINOR)
+#define VERSION_PATCH_STR ITALO_STRINGIFY(VERSION_PATCH)
 
 #ifndef STORAGE_SERVER_VERSION_STRING
 #define STORAGE_SERVER_VERSION_STRING                                          \
@@ -30,8 +30,8 @@
 
 inline std::string version_info() {
     return fmt::format(
-        "Loki Storage Server v{}\n git commit hash: {}\n build time: {}\n",
+        "Italo Storage Server v{}\n git commit hash: {}\n build time: {}\n",
         STORAGE_SERVER_VERSION_STRING, STORAGE_SERVER_GIT_HASH_STRING,
         STORAGE_SERVER_BUILD_TIME);
 }
-inline void print_version() { LOKI_LOG(info, "{}", version_info()); }
+inline void print_version() { ITALO_LOG(info, "{}", version_info()); }

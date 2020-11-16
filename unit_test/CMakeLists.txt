@@ -12,12 +12,12 @@ add_executable (Test
 
 # library under test
 
-loki_add_subdirectory(../common common)
-loki_add_subdirectory(../storage storage)
-loki_add_subdirectory(../pow pow)
-loki_add_subdirectory(../utils utils)
-loki_add_subdirectory(../crypto crypto)
-loki_add_subdirectory(../httpserver httpserver)
+italo_add_subdirectory(../common common)
+italo_add_subdirectory(../storage storage)
+italo_add_subdirectory(../pow pow)
+italo_add_subdirectory(../utils utils)
+italo_add_subdirectory(../crypto crypto)
+italo_add_subdirectory(../httpserver httpserver)
 
 target_link_libraries(Test PRIVATE common storage pow utils crypto httpserver_lib)
 

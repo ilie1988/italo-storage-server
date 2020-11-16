@@ -1,11 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include <lokimq/auth.h>
+#include <italomq/auth.h>
 #include <string>
 #include <vector>
 
-#include "loki_common.h"
+#include "italo_common.h"
 
 namespace boost {
 namespace asio {
@@ -13,7 +13,7 @@ class io_context;
 }
 } // namespace boost
 
-namespace loki {
+namespace italo {
 
 class ServiceNode;
 
@@ -27,7 +27,7 @@ using all_swarms_t = std::vector<SwarmInfo>;
 struct block_update_t {
     all_swarms_t swarms;
     std::vector<sn_record_t> decommissioned_nodes;
-    lokimq::pubkey_set active_x25519_pubkeys;
+    italomq::pubkey_set active_x25519_pubkeys;
     uint64_t height;
     std::string block_hash;
     int hardfork;
@@ -118,4 +118,4 @@ class Swarm {
     find_node_by_x25519_bin(const sn_pub_key_t& address) const;
 };
 
-} // namespace loki
+} // namespace italo

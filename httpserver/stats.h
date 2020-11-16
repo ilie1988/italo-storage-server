@@ -1,11 +1,11 @@
 #pragma once
 
-#include "loki_common.h"
+#include "italo_common.h"
 #include <atomic>
 #include <deque>
 #include <unordered_map>
 
-namespace loki {
+namespace italo {
 
 struct time_entry_t {
     time_t timestamp;
@@ -162,4 +162,4 @@ class all_stats_t {
     time_point_t get_reset_time() const { return reset_time_; }
 };
 
-} // namespace loki
+} // namespace italo

@@ -49,7 +49,7 @@ derive_symmetric_key(const std::vector<uint8_t>& seckey,
 
     std::vector<uint8_t> derived_key(32);
 
-    const std::string salt_str = "LOKI";
+    const std::string salt_str = "ITALO";
     const auto salt = reinterpret_cast<const unsigned char*>(salt_str.data());
 
     crypto_auth_hmacsha256_state state;

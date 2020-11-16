@@ -6,7 +6,7 @@
 #include <vector>
 // A sink used to store most important logs for developers
 
-namespace loki {
+namespace italo {
 
 template <typename Mutex>
 class dev_sink : public spdlog::sinks::base_sink<Mutex> {
@@ -71,4 +71,4 @@ class dev_sink : public spdlog::sinks::base_sink<Mutex> {
 #include <mutex>
 using dev_sink_mt = dev_sink<std::mutex>;
 
-} // namespace loki
+} // namespace italo

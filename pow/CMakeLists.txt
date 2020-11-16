@@ -3,7 +3,7 @@ add_library(pow STATIC
 )
 
 
-loki_add_subdirectory(../utils utils)
+italo_add_subdirectory(../utils utils)
 
 set_property(TARGET pow PROPERTY CXX_STANDARD 17)
 set_property(TARGET pow PROPERTY CXX_STANDARD_REQUIRED TRUE)

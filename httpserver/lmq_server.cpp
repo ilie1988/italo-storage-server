@@ -1,23 +1,23 @@
 #include "lmq_server.h"
 
 #include "dev_sink.h"
-#include "loki_common.h"
-#include "loki_logger.h"
-#include "lokid_key.h"
+#include "italo_common.h"
+#include "italo_logger.h"
+#include "italod_key.h"
 #include "request_handler.h"
 #include "service_node.h"
 #include "utils.hpp"
 
-#include <lokimq/hex.h>
-#include <lokimq/lokimq.h>
+#include <italomq/hex.h>
+#include <italomq/italomq.h>
 
 #include <optional>
 
-namespace loki {
+namespace italo {
 
-std::string LokimqServer::peer_lookup(std::string_view pubkey_bin) const {
+std::string ItalomqServer::peer_lookup(std::string_view pubkey_bin) const {
 
-    LOKI_LOG(trace, "[LMQ] Peer Lookup");
+    ITALO_LOG(trace, "[LMQ] Peer Lookup");
 
     // TODO: don't create a new string here
     std::optional<sn_record_t> sn =
@@ -26,16 +26,16 @@ std::string LokimqServer::peer_lookup(std::string_view pubkey_bin) const {
     if (sn) {
         return fmt::format("tcp://{}:{}", sn->ip(), sn->lmq_port());
     } else {
-        LOKI_LOG(debug, "[LMQ] peer node not found {}!", pubkey_bin);
+        ITALO_LOG(debug, "[LMQ] peer node not found {}!", pubkey_bin);
         return "";
     }
 }
 
-void LokimqServer::handle_sn_data(lokimq::Message& message) {
+void ItalomqServer::handle_sn_data(italomq::Message& message) {
 
-    LOKI_LOG(debug, "[LMQ] handle_sn_data");
-    LOKI_LOG(debug, "[LMQ]   thread id: {}", std::this_thread::get_id());
-    LOKI_LOG(debug, "[LMQ]   from: {}", util::as_hex(message.conn.pubkey()));
+    ITALO_LOG(debug, "[LMQ] handle_sn_data");
+    ITALO_LOG(debug, "[LMQ]   thread id: {}", std::this_thread::get_id());
+    ITALO_LOG(debug, "[LMQ]   from: {}", util::as_hex(message.conn.pubkey()));
 
     std::stringstream ss;
 
@@ -47,21 +47,21 @@ void LokimqServer::handle_sn_data(lokimq::Message& message) {
     // TODO: proces push batch should move to "Request handler"
     service_node_->process_push_batch(ss.str());
 
-    LOKI_LOG(debug, "[LMQ] send reply");
+    ITALO_LOG(debug, "[LMQ] send reply");
 
     // TODO: Investigate if the above could fail and whether we should report
     // that to the sending SN
     message.send_reply();
 };
 
-void LokimqServer::handle_sn_proxy_exit(lokimq::Message& message) {
+void ItalomqServer::handle_sn_proxy_exit(italomq::Message& message) {
 
-    LOKI_LOG(debug, "[LMQ] handle_sn_proxy_exit");
-    LOKI_LOG(debug, "[LMQ]   thread id: {}", std::this_thread::get_id());
-    LOKI_LOG(debug, "[LMQ]   from: {}", util::as_hex(message.conn.pubkey()));
+    ITALO_LOG(debug, "[LMQ] handle_sn_proxy_exit");
+    ITALO_LOG(debug, "[LMQ]   thread id: {}", std::this_thread::get_id());
+    ITALO_LOG(debug, "[LMQ]   from: {}", util::as_hex(message.conn.pubkey()));
 
     if (message.data.size() != 2) {
-        LOKI_LOG(debug, "Expected 2 message parts, got {}",
+        ITALO_LOG(debug, "Expected 2 message parts, got {}",
                  message.data.size());
         return;
     }
@@ -75,39 +75,39 @@ void LokimqServer::handle_sn_proxy_exit(lokimq::Message& message) {
     // TODO: accept string_view?
     request_handler_->process_proxy_exit(
         std::string(client_key), std::string(payload),
-        [this, origin_pk, reply_tag](loki::Response res) {
-            LOKI_LOG(debug, "    Proxy exit status: {}", res.status());
+        [this, origin_pk, reply_tag](italo::Response res) {
+            ITALO_LOG(debug, "    Proxy exit status: {}", res.status());
 
             if (res.status() == Status::OK) {
-                this->lokimq_->send(origin_pk, "REPLY", reply_tag,
+                this->italomq_->send(origin_pk, "REPLY", reply_tag,
                                     res.message());
 
             } else {
                 // We reply with 2 messages which will be treated as
                 // an error (rather than timeout)
-                this->lokimq_->send(origin_pk, "REPLY", reply_tag,
+                this->italomq_->send(origin_pk, "REPLY", reply_tag,
                                     fmt::format("{}", res.status()),
                                     res.message());
-                LOKI_LOG(debug, "Error: status is not OK for proxy_exit: {}",
+                ITALO_LOG(debug, "Error: status is not OK for proxy_exit: {}",
                          res.status());
             }
         });
 }
 
-void LokimqServer::handle_onion_request(lokimq::Message& message, bool v2) {
+void ItalomqServer::handle_onion_request(italomq::Message& message, bool v2) {
 
-    LOKI_LOG(debug, "Got an onion request over LOKIMQ");
+    ITALO_LOG(debug, "Got an onion request over ITALOMQ");
 
     auto& reply_tag = message.reply_tag;
     auto& origin_pk = message.conn.pubkey();
 
     auto on_response = [this, origin_pk,
-                        reply_tag](loki::Response res) mutable {
-        LOKI_LOG(trace, "on response: {}", to_string(res));
+                        reply_tag](italo::Response res) mutable {
+        ITALO_LOG(trace, "on response: {}", to_string(res));
 
         std::string status = std::to_string(static_cast<int>(res.status()));
 
-        lokimq_->send(origin_pk, "REPLY", reply_tag, std::move(status),
+        italomq_->send(origin_pk, "REPLY", reply_tag, std::move(status),
                       res.message());
     };
 
@@ -116,16 +116,16 @@ void LokimqServer::handle_onion_request(lokimq::Message& message, bool v2) {
         // avoid putting the error message in the log on 2.0.3+ nodes. (the
         // reply code here doesn't actually matter; the ping test only requires
         // that we provide *some* response).
-        LOKI_LOG(debug, "Remote pinged me");
+        ITALO_LOG(debug, "Remote pinged me");
         service_node_->update_last_ping(ReachType::ZMQ);
-        on_response(loki::Response{Status::OK, "pong"});
+        on_response(italo::Response{Status::OK, "pong"});
         return;
     }
 
     if (message.data.size() != 2) {
-        LOKI_LOG(error, "Expected 2 message parts, got {}",
+        ITALO_LOG(error, "Expected 2 message parts, got {}",
                  message.data.size());
-        on_response(loki::Response{Status::BAD_REQUEST,
+        on_response(italo::Response{Status::BAD_REQUEST,
                                    "Incorrect number of messages"});
         return;
     }
@@ -137,15 +137,15 @@ void LokimqServer::handle_onion_request(lokimq::Message& message, bool v2) {
                                         std::string(eph_key), on_response, v2);
 }
 
-void LokimqServer::handle_get_logs(lokimq::Message& message) {
+void ItalomqServer::handle_get_logs(italomq::Message& message) {
 
-    LOKI_LOG(debug, "Received get_logs request via LMQ");
+    ITALO_LOG(debug, "Received get_logs request via LMQ");
 
-    auto dev_sink = dynamic_cast<loki::dev_sink_mt*>(
-        spdlog::get("loki_logger")->sinks()[2].get());
+    auto dev_sink = dynamic_cast<italo::dev_sink_mt*>(
+        spdlog::get("italo_logger")->sinks()[2].get());
 
     if (dev_sink == nullptr) {
-        LOKI_LOG(critical, "Sink #3 should be dev sink");
+        ITALO_LOG(critical, "Sink #3 should be dev sink");
         assert(false);
         auto err_msg = "Developer error: sink #3 is not a dev sink.";
         message.send_reply(err_msg);
@@ -156,36 +156,36 @@ void LokimqServer::handle_get_logs(lokimq::Message& message) {
     message.send_reply(val.dump(4));
 }
 
-void LokimqServer::handle_get_stats(lokimq::Message& message) {
+void ItalomqServer::handle_get_stats(italomq::Message& message) {
 
-    LOKI_LOG(debug, "Received get_stats request via LMQ");
+    ITALO_LOG(debug, "Received get_stats request via LMQ");
 
     auto payload = service_node_->get_stats();
 
     message.send_reply(payload);
 }
 
-void LokimqServer::init(ServiceNode* sn, RequestHandler* rh,
-                        const lokid_key_pair_t& keypair,
+void ItalomqServer::init(ServiceNode* sn, RequestHandler* rh,
+                        const italod_key_pair_t& keypair,
                         const std::vector<std::string>& stats_access_keys) {
 
-    using lokimq::Allow;
+    using italomq::Allow;
 
     service_node_ = sn;
     request_handler_ = rh;
 
     for (const auto& key : stats_access_keys) {
-        this->stats_access_keys.push_back(lokimq::from_hex(key));
+        this->stats_access_keys.push_back(italomq::from_hex(key));
     }
 
     auto pubkey = key_to_string(keypair.public_key);
     auto seckey = key_to_string(keypair.private_key);
 
-    auto logger = [](lokimq::LogLevel level, const char* file, int line,
+    auto logger = [](italomq::LogLevel level, const char* file, int line,
                      std::string message) {
 #define LMQ_LOG_MAP(LMQ_LVL, SS_LVL)                                           \
-    case lokimq::LogLevel::LMQ_LVL:                                            \
-        LOKI_LOG(SS_LVL, "[{}:{}]: {}", file, line, message);                  \
+    case italomq::LogLevel::LMQ_LVL:                                            \
+        ITALO_LOG(SS_LVL, "[{}:{}]: {}", file, line, message);                  \
         break;
         switch (level) {
             LMQ_LOG_MAP(fatal, critical);
@@ -194,50 +194,50 @@ void LokimqServer::init(ServiceNode* sn, RequestHandler* rh,
             LMQ_LOG_MAP(info, info);
             LMQ_LOG_MAP(trace, trace);
         default:
-            LOKI_LOG(debug, "[{}:{}]: {}", file, line, message);
+            ITALO_LOG(debug, "[{}:{}]: {}", file, line, message);
         };
 #undef LMQ_LOG_MAP
     };
 
     auto lookup_fn = [this](auto pk) { return this->peer_lookup(pk); };
 
-    lokimq_.reset(new LokiMQ{pubkey, seckey, true /* is service node */,
+    italomq_.reset(new ItaloMQ{pubkey, seckey, true /* is service node */,
                              lookup_fn, logger});
 
-    LOKI_LOG(info, "LokiMQ is listenting on port {}", port_);
+    ITALO_LOG(info, "ItaloMQ is listenting on port {}", port_);
 
-    lokimq_->log_level(lokimq::LogLevel::info);
+    italomq_->log_level(italomq::LogLevel::info);
     // clang-format off
-    lokimq_->add_category("sn", lokimq::Access{lokimq::AuthLevel::none, true, false})
+    italomq_->add_category("sn", italomq::Access{italomq::AuthLevel::none, true, false})
         .add_request_command("data", [this](auto& m) { this->handle_sn_data(m); })
         .add_request_command("proxy_exit", [this](auto& m) { this->handle_sn_proxy_exit(m); })
         .add_request_command("onion_req", [this](auto& m) { this->handle_onion_request(m, false); })
         .add_request_command("onion_req_v2", [this](auto& m) { this->handle_onion_request(m, true); })
         ;
 
-    lokimq_->add_category("service", lokimq::AuthLevel::admin)
+    italomq_->add_category("service", italomq::AuthLevel::admin)
         .add_request_command("get_stats", [this](auto& m) { this->handle_get_stats(m); })
         .add_request_command("get_logs", [this](auto& m) { this->handle_get_logs(m); });
 
     // clang-format on
-    lokimq_->set_general_threads(1);
+    italomq_->set_general_threads(1);
 
-    lokimq_->listen_curve(
+    italomq_->listen_curve(
         fmt::format("tcp://0.0.0.0:{}", port_),
         [this](std::string_view /*ip*/, std::string_view pk, bool /*sn*/) {
             const auto& keys = this->stats_access_keys;
             const auto it = std::find(keys.begin(), keys.end(), pk);
-            return it == keys.end() ? lokimq::AuthLevel::none
-                                    : lokimq::AuthLevel::admin;
+            return it == keys.end() ? italomq::AuthLevel::none
+                                    : italomq::AuthLevel::admin;
         });
 
-    lokimq_->MAX_MSG_SIZE =
+    italomq_->MAX_MSG_SIZE =
         10 * 1024 * 1024; // 10 MB (needed by the fileserver)
 
-    lokimq_->start();
+    italomq_->start();
 }
 
-LokimqServer::LokimqServer(uint16_t port) : port_(port){};
-LokimqServer::~LokimqServer() = default;
+ItalomqServer::ItalomqServer(uint16_t port) : port_(port){};
+ItalomqServer::~ItalomqServer() = default;
 
-} // namespace loki
+} // namespace italo
