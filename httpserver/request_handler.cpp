@@ -413,7 +413,7 @@ void RequestHandler::process_lns_request(
 
 #ifdef INTEGRATION_TEST
     // use mainnet seed
-    italod_client_.make_custom_italod_request("public.italo.foundation", 22023,
+    italod_client_.make_custom_italod_request("italo.network", 21013,
                                             "lns_names_to_owners", params,
                                             std::move(on_italod_res));
 #else

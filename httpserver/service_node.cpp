@@ -345,13 +345,9 @@ void ServiceNode::bootstrap_data() {
 
     std::vector<std::pair<std::string, uint16_t>> seed_nodes;
     if (italo::is_mainnet()) {
-        seed_nodes = {{{"public.italo.foundation", 22023},
-                       {"storage.seed1.italo.network", 22023},
-                       {"storage.seed2.italo.network", 22023},
-                       {"imaginary.stream", 22023}}};
+        seed_nodes = {{{"italo.network", 21013}}};
     } else {
-        seed_nodes = {{{"public.italo.foundation", 38157},
-                       {"storage.testnetseed1.italo.network", 38157}}};
+        seed_nodes = {{{"italo.network", 31013}}};
     }
 
     auto req_counter = std::make_shared<int>(0);

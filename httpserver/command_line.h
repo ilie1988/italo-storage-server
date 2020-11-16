@@ -8,7 +8,7 @@ namespace italo {
 struct command_line_options {
     uint16_t port;
     std::string italod_rpc_ip = "127.0.0.1";
-    uint16_t italod_rpc_port = 22023; // Or 38157 if `testnet`
+    uint16_t italod_rpc_port = 21013; // Or 31013 if `testnet`
     uint16_t lmq_port;
     bool force_start = false;
     bool print_version = false;
